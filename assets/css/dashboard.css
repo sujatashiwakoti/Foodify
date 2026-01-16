@@ -1,0 +1,56 @@
+/* ===== DASHBOARD ===== */
+
+.dashboard-container {
+    display: flex;
+}
+
+.sidebar {
+    width: 250px;
+    background: #38332c;
+    min-height: 100vh;
+    color: #fff;
+    padding: 20px;
+}
+
+.sidebar h3 {
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+.sidebar a {
+    display: block;
+    color: #d1d1d1;
+    padding: 10px 0;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+    color: #ff4d2d;
+}
+
+.dashboard-content {
+    flex: 1;
+    padding: 30px;
+    background: #f6f4ee;
+}
+
+/* Dashboard cards */
+.dashboard-card {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+.dashboard-card h4 {
+    font-size: 18px;
+    color: #38332c;
+}
+
+.dashboard-card p {
+    font-size: 14px;
+    color: #666;
+}
