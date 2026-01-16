@@ -10,19 +10,37 @@ if(!isset($_SESSION['customer_email'])){
 $email = $_SESSION['customer_email'];
 $customer_id = $conn->query("SELECT id FROM customers WHERE email='$email'")->fetch_assoc()['id'];
 
-if(isset($_POST['checkout'])){
-    foreach($_POST['product_id'] as $i => $pid){
-        $quantity = $_POST['quantity'][$i];
-        $conn->query("INSERT INTO orders (customer_id, product_id, quantity, status, created_at) 
-                      VALUES ($customer_id, $pid, $quantity, 'Pending', NOW())");
-        $conn->query("DELETE FROM cart WHERE customer_id=$customer_id AND product_id=$pid");
-    }
-    header("Location: orders.php");
-}
+// Get cart items
+$cart = $conn->query("
+    SELECT c.id as cart_id, p.name, p.price, c.quantity
+    FROM cart c
+    JOIN products p ON c.product_id = p.id
+    WHERE c.customer_id = $customer_id
+");
 
-$cart = $conn->query("SELECT c.product_id, p.name, p.price, c.quantity 
-                      FROM cart c JOIN products p ON c.product_id=p.id 
-                      WHERE c.customer_id=$customer_id");
+if(isset($_POST['place_order']) && $cart->num_rows > 0){
+    $address = $_POST['address'];
+    $payment_method = $_POST['payment_method'];
+
+    // Insert into orders table
+    $stmt = $conn->prepare("INSERT INTO orders(customer_id,address,payment_method) VALUES(?,?,?)");
+    $stmt->bind_param("iss",$customer_id,$address,$payment_method);
+    if($stmt->execute()){
+        $order_id = $stmt->insert_id;
+
+        // Move cart items to order_items
+        while($item = $cart->fetch_assoc()){
+            $stmt2 = $conn->prepare("INSERT INTO order_items(order_id,product_id,quantity,price) VALUES(?,?,?,?)");
+            $stmt2->bind_param("iiid",$order_id,$item['cart_id'],$item['quantity'],$item['price']);
+            $stmt2->execute();
+        }
+
+        // Clear cart
+        $conn->query("DELETE FROM cart WHERE customer_id=$customer_id");
+        header("Location: orders.php");
+        exit();
+    }
+}
 
 include("../includes/header.php");
 ?>
@@ -30,48 +48,22 @@ include("../includes/header.php");
 <section class="checkout-section">
     <div class="container">
         <h2>Checkout</h2>
-        <?php if($cart->num_rows > 0): ?>
-        <form method="POST" action="">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Product</th>
-                        <th>Quantity</th>
-                        <th>Price</th>
-                        <th>Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php $grandTotal=0; while($item=$cart->fetch_assoc()): 
-                        $total = $item['price'] * $item['quantity']; 
-                        $grandTotal += $total;
-                    ?>
-                        <tr>
-                            <td><?= $item['name'] ?>
-                                <input type="hidden" name="product_id[]" value="<?= $item['product_id'] ?>">
-                            </td>
-                            <td>
-                                <input type="number" name="quantity[]" value="<?= $item['quantity'] ?>" min="1">
-                            </td>
-                            <td>Rs. <?= $item['price'] ?></td>
-                            <td>Rs. <?= $total ?></td>
-                        </tr>
-                    <?php endwhile; ?>
-                </tbody>
-            </table>
-            <h3>Grand Total: Rs. <?= $grandTotal ?></h3>
-            <button type="submit" name="checkout" class="btn-primary">Place Order</button>
-        </form>
-        <?php else: ?>
+        <?php if($cart->num_rows == 0): ?>
             <p>Your cart is empty. <a href="../products/list.php">Shop Now</a></p>
+        <?php else: ?>
+            <form method="POST">
+                <label>Delivery Address:</label>
+                <textarea name="address" required></textarea>
+                <label>Payment Method:</label>
+                <select name="payment_method" required>
+                    <option value="Cash on Delivery">Cash on Delivery</option>
+                    <option value="Esewa">Esewa</option>
+                    <option value="Khalti">Khalti</option>
+                </select>
+                <button type="submit" name="place_order" class="btn-primary">Place Order</button>
+            </form>
         <?php endif; ?>
     </div>
 </section>
-
-<style>
-.checkout-section table { width:100%; border-collapse: collapse; margin-top: 20px; }
-.checkout-section th, .checkout-section td { padding:10px; border:1px solid #ddd; text-align:left; }
-.checkout-section input { width:60px; padding:5px; }
-</style>
 
 <?php include("../includes/footer.php"); ?>

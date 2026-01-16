@@ -1,6 +1,8 @@
 <?php
 session_start();
 include("../config/db.php");
+
+// Redirect if already logged in
 if(isset($_SESSION['customer_email'])){
     header("Location: dashboard.php");
     exit();
@@ -11,7 +13,12 @@ if(isset($_POST['login'])){
     $email = $_POST['email'];
     $password = $_POST['password'];
 
-    $result = $conn->query("SELECT * FROM customers WHERE email='$email' AND password='$password'");
+    // Simple authentication
+    $stmt = $conn->prepare("SELECT * FROM customers WHERE email=? AND password=?");
+    $stmt->bind_param("ss", $email, $password);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
     if($result->num_rows == 1){
         $_SESSION['customer_email'] = $email;
         header("Location: dashboard.php");
@@ -20,6 +27,7 @@ if(isset($_POST['login'])){
         $login_error = "Invalid email or password";
     }
 }
+
 include("../includes/header.php");
 ?>
 
@@ -37,12 +45,5 @@ include("../includes/header.php");
         <p>Don't have an account? <a href="register.php">Register here</a></p>
     </div>
 </section>
-
-<style>
-.auth-section { padding: 50px 0; text-align: center; }
-.auth-section input { display:block; width: 300px; margin:10px auto; padding:10px; }
-.auth-section button { padding:10px 20px; background:#1f8ef1; color:#fff; border:none; cursor:pointer; }
-.auth-section .error { color:red; margin-bottom:10px; }
-</style>
 
 <?php include("../includes/footer.php"); ?>

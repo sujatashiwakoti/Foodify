@@ -41,8 +41,8 @@ include("../includes/header.php");
                         $grandTotal += $total;
                     ?>
                         <tr>
-                            <td><?= $item['name'] ?></td>
-                            <td><img src="../assets/images/products/<?= $item['image'] ?>" width="50"></td>
+                            <td><?= htmlspecialchars($item['name']) ?></td>
+                            <td><img src="../assets/images/products/<?= htmlspecialchars($item['image']) ?>" width="50"></td>
                             <td><?= $item['quantity'] ?></td>
                             <td>Rs. <?= $item['price'] ?></td>
                             <td>Rs. <?= $total ?></td>
@@ -58,12 +58,5 @@ include("../includes/header.php");
         <?php endif; ?>
     </div>
 </section>
-
-<style>
-.cart-section table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-.cart-section th, .cart-section td { padding: 10px; border: 1px solid #ddd; text-align: left; }
-.cart-section img { border-radius: 5px; }
-.cart-section a { color:#1f8ef1; text-decoration:none; }
-</style>
 
 <?php include("../includes/footer.php"); ?>
