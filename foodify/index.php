@@ -23,8 +23,8 @@
             </p>
 
             <div class="hero-buttons">
-                <a href="products/list.php" class="btn-primary">Order Now</a>
-                <a href="products/list.php" class="btn-secondary">View Menu</a>
+                <a href="products_index.php" class="btn-primary">Order Now</a>
+                <a href="products_index.php" class="btn-secondary">View Menu</a>
             </div>
         </div>
 
@@ -198,34 +198,38 @@
             <?php
             include("config/db.php");
 
-            $sql = "SELECT * FROM products ORDER BY id DESC LIMIT 8"; // latest 8 products
+            $sql = "SELECT * FROM products WHERE status='active' ORDER BY id DESC LIMIT 8";
             $result = $conn->query($sql);
 
-            if ($result->num_rows > 0) {
-                while($row = $result->fetch_assoc()){
+            if ($result->num_rows > 0):
+                while($row = $result->fetch_assoc()):
             ?>
             <div class="product-card">
-                <img src="assets/images/products/<?= $row['image'] ?>" alt="<?= $row['name'] ?>">
+                <img src="assets/images/products/<?= $row['image']; ?>" alt="<?= $row['name']; ?>">
+
                 <div class="product-info">
-                    <p class="category"><?= $row['category'] ?></p>
-                    <h4><?= $row['name'] ?></h4>
+                    <p class="category"><?= $row['category']; ?></p>
+                    <h4><?= $row['name']; ?></h4>
+
                     <div class="price-cart">
-                        <span>Rs. <?= $row['price'] ?></span>
-                        <button>Add</button>
+                        <span>Rs. <?= $row['price']; ?></span>
+                        <a href="products/details.php?id=<?= $row['id']; ?>">
+                            <button>View</button>
+                        </a>
                     </div>
                 </div>
             </div>
             <?php
-                }
-            } else {
+                endwhile;
+            else:
                 echo "<p>No products available.</p>";
-            }
-            $conn->close();
+            endif;
             ?>
 
         </div>
     </div>
 </section>
+
 
 
 <?php include("includes/footer.php"); ?>
